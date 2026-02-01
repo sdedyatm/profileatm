@@ -1,6 +1,5 @@
 const CACHE_NAME = 'master-tombol-v1';
 const DATA_CACHE = 'pwa-data';
-
 const STATIC_FILES = [
   './',
   'index.html',
@@ -8,14 +7,12 @@ const STATIC_FILES = [
   'manifest.json'
   // Tambahkan path ikon lokal jika Anda pakai file lokal
 ];
-
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_FILES))
   );
   self.skipWaiting();
 });
-
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
@@ -24,10 +21,8 @@ self.addEventListener('activate', event => {
     ))
   );
 });
-
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-
   // Static assets → cache first
   if (STATIC_FILES.includes(url.pathname) || url.origin === self.location.origin) {
     event.respondWith(
@@ -39,7 +34,6 @@ self.addEventListener('fetch', event => {
       })
     );
   }
-
   // API GAS → network first, fallback ke cache
   else if (url.href.startsWith(API_URL)) {
     event.respondWith(
