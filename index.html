@@ -25,6 +25,35 @@
       border: none;
       display: block;
     }
+
+    /* Tombol Install - floating, minimalis */
+    #install-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 123, 255, 0.9);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      display: none;
+      /* Awalnya disembunyikan */
+      align-items: center;
+      justify-content: center;
+    }
+
+    #install-button.show {
+      display: flex;
+    }
+
+    #install-button:hover {
+      background: #0056b3;
+    }
   </style>
 </head>
 
@@ -32,8 +61,35 @@
   <iframe src="https://script.google.com/macros/s/AKfycbzQCF1ypOFfNPzNJFzHVKwzEat0hd2nIs1dpTOuSVeWuIrBKTjD2Qi0xRfhnbg7RXZA/exec" allowfullscreen allow="accelerometer; autoplay; camera; clipboard-read; clipboard-write; encrypted-media; fullscreen; geolocation; gyroscope; magnetometer; microphone; midi; payment; picture-in-picture; publickey-credentials-get; screen-wake-lock; web-share; xr-spatial-tracking">
   </iframe>
 
+  <!-- Tombol Install Manual -->
+  <button id="install-button" aria-label="Install App">
+    ➕
+  </button>
+
   <script>
-    // Refresh otomatis saat kembali online
+    let deferredPrompt;
+    // Tangkap event beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Tampilkan tombol install
+      document.getElementById('install-button').classList.add('show');
+    });
+    // Ketika tombol diklik → trigger prompt install
+    document.getElementById('install-button').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const {
+        outcome
+      } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('User menginstall PWA');
+      }
+      deferredPrompt = null;
+      // Sembunyikan tombol setelah install
+      document.getElementById('install-button').classList.remove('show');
+    });
+    // Refresh saat online
     window.addEventListener('online', () => location.reload());
     // Register Service Worker
     if ('serviceWorker' in navigator) {
