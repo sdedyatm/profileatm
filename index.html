@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,730 +9,76 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <style>
-    html,
-    body {
+    html, body {
       height: 100%;
       margin: 0;
       padding: 0;
       background: #000;
       overflow: hidden;
-      font-family: 'Segoe UI', sans-serif;
     }
-
     iframe {
       width: 100%;
       height: 100%;
       border: none;
       display: block;
     }
-
-    /* ─── Notifikasi Icon (Top-Right) ─── */
-    #notif-icon-wrap {
+    /* Tombol Install - floating, minimalis */
+    #install-button {
       position: fixed;
-      top: 14px;
-      right: 16px;
-      z-index: 9998;
-      cursor: pointer;
-      display: none;
-    }
-
-    #notif-icon-wrap.show {
-      display: block;
-    }
-
-    #notif-icon {
-      width: 44px;
-      height: 44px;
-      background: rgba(20, 20, 28, 0.82);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-      transition: transform 0.18s, background 0.18s;
-    }
-
-    #notif-icon-wrap:active #notif-icon {
-      transform: scale(0.88);
-      background: rgba(40, 40, 55, 0.9);
-    }
-
-    #notif-icon svg {
-      width: 22px;
-      height: 22px;
-    }
-
-    /* Badge notifikasi */
-    #notif-badge {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background: #ff3b30;
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      min-width: 18px;
-      height: 18px;
-      border-radius: 9px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #000;
-      box-shadow: 0 2px 6px rgba(255, 59, 48, 0.5);
-      animation: badgePulse 2s infinite;
-    }
-
-    #notif-badge.show {
-      display: flex;
-    }
-
-    @keyframes badgePulse {
-
-      0%,
-      100% {
-        box-shadow: 0 2px 6px rgba(255, 59, 48, 0.5);
-      }
-
-      50% {
-        box-shadow: 0 2px 12px rgba(255, 59, 48, 0.85);
-      }
-    }
-
-    /* Animasi goyang bell saat notif baru */
-    @keyframes bellShake {
-
-      0%,
-      100% {
-        transform: rotate(0deg);
-      }
-
-      15% {
-        transform: rotate(-18deg);
-      }
-
-      30% {
-        transform: rotate(18deg);
-      }
-
-      45% {
-        transform: rotate(-12deg);
-      }
-
-      60% {
-        transform: rotate(12deg);
-      }
-
-      75% {
-        transform: rotate(-5deg);
-      }
-    }
-
-    #notif-icon.shake {
-      animation: bellShake 0.6s ease;
-    }
-
-    /* ─── Panel Notifikasi (dropdown) ─── */
-    #notif-panel {
-      position: fixed;
-      top: 62px;
-      right: 12px;
-      width: 300px;
-      max-width: calc(100vw - 24px);
-      max-height: 360px;
-      background: rgba(18, 18, 26, 0.95);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-      z-index: 9997;
-      overflow: hidden;
-      transform: translateY(-12px) scale(0.96);
-      opacity: 0;
-      pointer-events: none;
-      transition: transform 0.22s cubic-bezier(.34, 1.56, .64, 1), opacity 0.18s;
-    }
-
-    #notif-panel.open {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .notif-panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .notif-panel-header span {
-      color: #fff;
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-    }
-
-    #notif-clear-btn {
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.4);
-      background: none;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 123, 255, 0.9);
+      color: white;
       border: none;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: color 0.15s, background 0.15s;
-    }
-
-    #notif-clear-btn:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    #notif-list {
-      overflow-y: auto;
-      max-height: 290px;
-      padding: 6px 0;
-    }
-
-    #notif-list::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    #notif-list::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    #notif-list::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 2px;
-    }
-
-    .notif-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px 14px;
-      transition: background 0.15s;
-      cursor: default;
-    }
-
-    .notif-item:hover {
-      background: rgba(255, 255, 255, 0.04);
-    }
-
-    .notif-item.unread {
-      background: rgba(59, 130, 246, 0.07);
-    }
-
-    .notif-item.unread:hover {
-      background: rgba(59, 130, 246, 0.12);
-    }
-
-    .notif-dot {
-      width: 8px;
-      height: 8px;
       border-radius: 50%;
-      background: #3b82f6;
-      flex-shrink: 0;
-      margin-top: 5px;
-      transition: background 0.2s;
-    }
-
-    .notif-item:not(.unread) .notif-dot {
-      background: transparent;
-    }
-
-    .notif-text {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .notif-text .notif-title {
-      color: #fff;
-      font-size: 13px;
-      font-weight: 500;
-      line-height: 1.4;
-      margin-bottom: 2px;
-    }
-
-    .notif-item:not(.unread) .notif-title {
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .notif-text .notif-time {
-      color: rgba(255, 255, 255, 0.28);
-      font-size: 11px;
-    }
-
-    .notif-empty {
-      color: rgba(255, 255, 255, 0.3);
-      font-size: 13px;
-      text-align: center;
-      padding: 30px 16px;
-    }
-
-    /* ─── Popup Install (Bottom-Center) ─── */
-    #install-popup-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.55);
-      backdrop-filter: blur(3px);
-      z-index: 10000;
-      display: none;
-      align-items: flex-end;
-      justify-content: center;
-      padding-bottom: 0;
-    }
-
-    #install-popup-overlay.show {
-      display: flex;
-    }
-
-    #install-popup {
-      background: linear-gradient(160deg, #1a1a2e 0%, #16162a 100%);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px 24px 0 0;
-      width: 100%;
-      max-width: 420px;
-      padding: 10px 24px 36px;
-      transform: translateY(100%);
-      transition: transform 0.38s cubic-bezier(.34, 1.56, .64, 1);
-      position: relative;
-    }
-
-    #install-popup-overlay.show #install-popup {
-      transform: translateY(0);
-    }
-
-    /* Handle drag indicator */
-    .popup-handle {
-      width: 40px;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 2px;
-      margin: 0 auto 18px;
-    }
-
-    .popup-icon-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 16px;
-    }
-
-    .popup-app-icon {
-      width: 58px;
-      height: 58px;
-      border-radius: 14px;
-      background: #0a0d12;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .popup-app-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .popup-app-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .popup-app-name {
-      color: #fff;
-      font-size: 17px;
-      font-weight: 600;
-      margin-bottom: 3px;
-    }
-
-    .popup-app-desc {
-      color: rgba(255, 255, 255, 0.4);
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-    .popup-steps {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 22px;
-    }
-
-    .popup-step {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .step-num {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: rgba(59, 130, 246, 0.15);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #3b82f6;
-      font-size: 12px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .step-text {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .step-text strong {
-      color: rgba(255, 255, 255, 0.95);
-      font-weight: 600;
-    }
-
-    #install-popup-btn {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 600;
+      width: 56px;
+      height: 56px;
+      font-size: 24px;
       cursor: pointer;
-      box-shadow: 0 4px 18px rgba(59, 130, 246, 0.4);
-      transition: transform 0.15s, box-shadow 0.15s;
-      letter-spacing: 0.2px;
-    }
-
-    #install-popup-btn:active {
-      transform: scale(0.96);
-      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
-    }
-
-    #install-popup-close {
-      position: absolute;
-      top: 14px;
-      right: 18px;
-      background: none;
-      border: none;
-      color: rgba(255, 255, 255, 0.3);
-      font-size: 20px;
-      cursor: pointer;
-      line-height: 1;
-      padding: 4px;
-      transition: color 0.15s;
-    }
-
-    #install-popup-close:hover {
-      color: rgba(255, 255, 255, 0.7);
-    }
-
-    /* ─── Floating Install Trigger (bottom-center, small pill) ─── */
-    #install-trigger {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(0);
-      background: rgba(30, 30, 45, 0.88);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(59, 130, 246, 0.35);
-      border-radius: 28px;
-      padding: 10px 20px 10px 14px;
-      display: none;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       z-index: 9999;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
-      transition: transform 0.25s cubic-bezier(.34, 1.56, .64, 1), opacity 0.2s;
-      opacity: 0;
+      display: none; /* Awalnya disembunyikan */
+      align-items: center;
+      justify-content: center;
     }
-
-    #install-trigger.show {
+    #install-button.show {
       display: flex;
-      opacity: 1;
     }
-
-    #install-trigger:active {
-      transform: translateX(-50%) scale(0.94);
-    }
-
-    .trigger-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 9px;
-      background: #0a0d12;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .trigger-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .trigger-text {
-      color: #fff;
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .trigger-text span {
-      color: #3b82f6;
-      font-weight: 600;
+    #install-button:hover {
+      background: #0056b3;
     }
   </style>
 </head>
-
 <body>
-  <iframe src="https://script.google.com/macros/s/AKfycbzQCF1ypOFfNPzNJFzHVKwzEat0hd2nIs1dpTOuSVeWuIrBKTjD2Qi0xRfhnbg7RXZA/exec" allowfullscreen allow="accelerometer; autoplay; camera; clipboard-read; clipboard-write; encrypted-media; fullscreen; geolocation; gyroscope; magnetometer; microphone; midi; payment; picture-in-picture; publickey-credentials-get; screen-wake-lock; web-share; xr-spatial-tracking">
+  <iframe 
+    src="https://script.google.com/macros/s/AKfycbzQCF1ypOFfNPzNJFzHVKwzEat0hd2nIs1dpTOuSVeWuIrBKTjD2Qi0xRfhnbg7RXZA/exec"
+    allowfullscreen
+    allow="accelerometer; autoplay; camera; clipboard-read; clipboard-write; encrypted-media; fullscreen; geolocation; gyroscope; magnetometer; microphone; midi; payment; picture-in-picture; publickey-credentials-get; screen-wake-lock; web-share; xr-spatial-tracking">
   </iframe>
-
-  <!-- Notifikasi Icon (top-right) -->
-  <div id="notif-icon-wrap" aria-label="Notifikasi">
-    <div id="notif-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-      </svg>
-    </div>
-    <div id="notif-badge">0</div>
-  </div>
-
-  <!-- Panel Notifikasi -->
-  <div id="notif-panel">
-    <div class="notif-panel-header">
-      <span>Notifikasi</span>
-      <button id="notif-clear-btn">Hapus semua</button>
-    </div>
-    <div id="notif-list">
-      <div class="notif-empty">Belum ada notifikasi</div>
-    </div>
-  </div>
-
-  <!-- Install Trigger (bottom center pill) -->
-  <div id="install-trigger" aria-label="Install App">
-    <div class="trigger-icon">
-      <img src="https://play-lh.googleusercontent.com/aXqNEkv2gOWHmFdj-BfCKoBignxVAp72vUFIErD_sO_dhO2Vrei4qT57bs6rExFWnSU=w192-h192-rw" alt="icon">
-    </div>
-    <div class="trigger-text"><span>Install</span> Apps Atm</div>
-  </div>
-
-  <!-- Install Popup (bottom sheet) -->
-  <div id="install-popup-overlay">
-    <div id="install-popup">
-      <button id="install-popup-close">&times;</button>
-      <div class="popup-handle"></div>
-      <div class="popup-icon-row">
-        <div class="popup-app-icon">
-          <img src="https://play-lh.googleusercontent.com/aXqNEkv2gOWHmFdj-BfCKoBignxVAp72vUFIErD_sO_dhO2Vrei4qT57bs6rExFWnSU=w192-h192-rw" alt="Apps Atm">
-        </div>
-        <div class="popup-app-info">
-          <div class="popup-app-name">Apps Atm</div>
-          <div class="popup-app-desc">Tambahkan ke layar utama untuk pengalaman lebih cepat & nyaman</div>
-        </div>
-      </div>
-      <div class="popup-steps">
-        <div class="popup-step">
-          <div class="step-num">1</div>
-          <div class="step-text">Ketik <strong>⋯ Menu</strong> di browser Anda</div>
-        </div>
-        <div class="popup-step">
-          <div class="step-num">2</div>
-          <div class="step-text">Pilih <strong>"Tambah ke layar utama"</strong></div>
-        </div>
-        <div class="popup-step">
-          <div class="step-num">3</div>
-          <div class="step-text">Ketik <strong>"Tambah"</strong> untuk konfirmasi</div>
-        </div>
-      </div>
-      <button id="install-popup-btn">Tambah ke Layar Utama</button>
-    </div>
-  </div>
-
+  <!-- Tombol Install Manual -->
+  <button id="install-button" aria-label="Install App">
+    ➕
+  </button>
   <script>
-    // ─── Audio Context untuk suara notifikasi ───
-    function playNotifSound() {
-      try {
-        const ctx = new(window.AudioContext || window.webkitAudioContext)();
-        // Tone 1 – tinggi
-        const osc1 = ctx.createOscillator();
-        const gain1 = ctx.createGain();
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(880, ctx.currentTime);
-        gain1.gain.setValueAtTime(0.18, ctx.currentTime);
-        gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-        osc1.connect(gain1);
-        gain1.connect(ctx.destination);
-        osc1.start(ctx.currentTime);
-        osc1.stop(ctx.currentTime + 0.25);
-        // Tone 2 – lebih tinggi, delay
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(1100, ctx.currentTime + 0.12);
-        gain2.gain.setValueAtTime(0, ctx.currentTime);
-        gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.12);
-        gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.38);
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.start(ctx.currentTime + 0.12);
-        osc2.stop(ctx.currentTime + 0.38);
-      } catch (e) {
-        /* silent fail jika AudioContext tidak tersedia */ }
-    }
-    // ─── Sistem Notifikasi ───
-    const notifications = [];
-    let unreadCount = 0;
-
-    function formatTime(date) {
-      const now = new Date();
-      const diff = (now - date) / 1000;
-      if (diff < 60) return 'Baru saja';
-      if (diff < 3600) return Math.floor(diff / 60) + ' menit lalu';
-      if (diff < 86400) return Math.floor(diff / 3600) + ' jam lalu';
-      return date.toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short'
-      });
-    }
-
-    function renderNotifList() {
-      const list = document.getElementById('notif-list');
-      if (notifications.length === 0) {
-        list.innerHTML = '<div class="notif-empty">Belum ada notifikasi</div>';
-        return;
-      }
-      list.innerHTML = notifications.map((n, i) =>
-        `<div class="notif-item ${n.unread ? 'unread' : ''}" data-index="${i}">
-        <div class="notif-dot"></div>
-        <div class="notif-text">
-          <div class="notif-title">${n.title}</div>
-          <div class="notif-time">${formatTime(n.date)}</div>
-        </div>
-      </div>`
-      ).join('');
-      // Click item → mark as read
-      list.querySelectorAll('.notif-item').forEach(el => {
-        el.addEventListener('click', () => {
-          const idx = parseInt(el.dataset.index);
-          if (notifications[idx] && notifications[idx].unread) {
-            notifications[idx].unread = false;
-            unreadCount = Math.max(0, unreadCount - 1);
-            updateBadge();
-            renderNotifList();
-          }
-        });
-      });
-    }
-
-    function updateBadge() {
-      const badge = document.getElementById('notif-badge');
-      if (unreadCount > 0) {
-        badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-        badge.classList.add('show');
-      } else {
-        badge.classList.remove('show');
-      }
-    }
-
-    function addNotification(title) {
-      notifications.unshift({
-        title,
-        date: new Date(),
-        unread: true
-      });
-      unreadCount++;
-      updateBadge();
-      renderNotifList();
-      // Shake bell
-      const icon = document.getElementById('notif-icon');
-      icon.classList.add('shake');
-      setTimeout(() => icon.classList.remove('shake'), 650);
-      // Suara
-      playNotifSound();
-      // Tampilkan icon notifikasi
-      document.getElementById('notif-icon-wrap').classList.add('show');
-    }
-    // Toggle panel notifikasi
-    document.getElementById('notif-icon-wrap').addEventListener('click', (e) => {
-      e.stopPropagation();
-      const panel = document.getElementById('notif-panel');
-      panel.classList.toggle('open');
-      // Mark all as read saat buka
-      if (panel.classList.contains('open')) {
-        notifications.forEach(n => n.unread = false);
-        unreadCount = 0;
-        updateBadge();
-        renderNotifList();
-      }
-    });
-    // Tutup panel saat klik di luar
-    document.addEventListener('click', (e) => {
-      const panel = document.getElementById('notif-panel');
-      const wrap = document.getElementById('notif-icon-wrap');
-      if (!wrap.contains(e.target) && !panel.contains(e.target)) {
-        panel.classList.remove('open');
-      }
-    });
-    // Hapus semua notifikasi
-    document.getElementById('notif-clear-btn').addEventListener('click', () => {
-      notifications.length = 0;
-      unreadCount = 0;
-      updateBadge();
-      renderNotifList();
-    });
-    // ─── Demo: simulasi notifikasi masuk ───
-    // Tambahkan beberapa notifikasi contoh saat load
-    setTimeout(() => addNotification('Selamat datang di Apps Atm! 👋'), 1200);
-    setTimeout(() => addNotification('Data terbaru telah diperbarui.'), 3500);
-    setTimeout(() => addNotification('Tip: Install app ini di layar utama untuk akses lebih cepat.'), 6000);
-    // ─── Install PWA Logic ───
-    let deferredPrompt = null;
+    let deferredPrompt;
+    // Tangkap event beforeinstallprompt
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      // Tampilkan trigger pill (bottom center)
-      document.getElementById('install-trigger').classList.add('show');
+      // Tampilkan tombol install
+      document.getElementById('install-button').classList.add('show');
     });
-    // Klik trigger pill → buka popup
-    document.getElementById('install-trigger').addEventListener('click', () => {
-      document.getElementById('install-popup-overlay').classList.add('show');
-    });
-    // Tutup popup
-    function closeInstallPopup() {
-      document.getElementById('install-popup-overlay').classList.remove('show');
-    }
-    document.getElementById('install-popup-close').addEventListener('click', closeInstallPopup);
-    document.getElementById('install-popup-overlay').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('install-popup-overlay')) closeInstallPopup();
-    });
-    // Tombol install di popup
-    document.getElementById('install-popup-btn').addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const {
-          outcome
-        } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          console.log('User menginstall PWA');
-          closeInstallPopup();
-          document.getElementById('install-trigger').classList.remove('show');
-        }
-        deferredPrompt = null;
-      } else {
-        // Fallback: tunjukkan instruksi manual saja (popup tetap buka)
-        closeInstallPopup();
+    // Ketika tombol diklik → trigger prompt install
+    document.getElementById('install-button').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('User menginstall PWA');
       }
+      deferredPrompt = null;
+      // Sembunyikan tombol setelah install
+      document.getElementById('install-button').classList.remove('show');
     });
     // Refresh saat online
     window.addEventListener('online', () => location.reload());
@@ -745,5 +90,4 @@
     }
   </script>
 </body>
-
-</html>
+</html> 
