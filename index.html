@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,79 +10,131 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <style>
-    html, body {
+    html,
+    body {
       height: 100%;
       margin: 0;
       padding: 0;
       background: #000;
       overflow: hidden;
+      font-family: sans-serif;
     }
+
     iframe {
       width: 100%;
       height: 100%;
       border: none;
       display: block;
     }
-    /* Tombol Install - floating, minimalis */
-    #install-button {
+
+    /* Popup Install - Modern Bottom Center */
+    #install-banner {
       position: fixed;
       bottom: 20px;
-      right: 20px;
-      background: rgba(0, 123, 255, 0.9);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 56px;
-      height: 56px;
-      font-size: 24px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      z-index: 9999;
-      display: none; /* Awalnya disembunyikan */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 400px;
+      background: #ffffff;
+      color: #333;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      z-index: 10000;
+      display: none;
+      /* Sembunyi secara default */
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
+      animation: slideUp 0.5s ease-out;
     }
-    #install-button.show {
+
+    @keyframes slideUp {
+      from {
+        transform: translate(-50%, 100px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
+    }
+
+    #install-banner.show {
       display: flex;
     }
-    #install-button:hover {
-      background: #0056b3;
+
+    .banner-text {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .install-btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close-banner {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: #888;
+      margin-left: 10px;
+      cursor: pointer;
     }
   </style>
 </head>
+
 <body>
-  <iframe 
-    src="https://script.google.com/macros/s/AKfycbzQCF1ypOFfNPzNJFzHVKwzEat0hd2nIs1dpTOuSVeWuIrBKTjD2Qi0xRfhnbg7RXZA/exec"
-    allowfullscreen
-    allow="accelerometer; autoplay; camera; clipboard-read; clipboard-write; encrypted-media; fullscreen; geolocation; gyroscope; magnetometer; microphone; midi; payment; picture-in-picture; publickey-credentials-get; screen-wake-lock; web-share; xr-spatial-tracking">
+
+  <iframe src="https://script.google.com/macros/s/AKfycbzQCF1ypOFfNPzNJFzHVKwzEat0hd2nIs1dpTOuSVeWuIrBKTjD2Qi0xRfhnbg7RXZA/exec" allowfullscreen allow="accelerometer; autoplay; camera; clipboard-read; clipboard-write; encrypted-media; fullscreen; geolocation; gyroscope; magnetometer; microphone; midi; payment; picture-in-picture; publickey-credentials-get; screen-wake-lock; web-share; xr-spatial-tracking">
   </iframe>
-  <!-- Tombol Install Manual -->
-  <button id="install-button" aria-label="Install App">
-    ➕
-  </button>
+
+  <div id="install-banner">
+    <div class="banner-text">Pasang aplikasi agar lebih mudah akses?</div>
+    <div style="display: flex; align-items: center;">
+      <button id="btn-install-now" class="install-btn">Install</button>
+      <button id="btn-close-banner" class="close-banner">&times;</button>
+    </div>
+  </div>
+
   <script>
     let deferredPrompt;
-    // Tangkap event beforeinstallprompt
+    const banner = document.getElementById('install-banner');
+    const btnInstall = document.getElementById('btn-install-now');
+    const btnClose = document.getElementById('btn-close-banner');
+    // Tangkap event install dari browser
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      // Tampilkan tombol install
-      document.getElementById('install-button').classList.add('show');
+      // Munculkan popup di bawah tengah
+      banner.classList.add('show');
     });
-    // Ketika tombol diklik → trigger prompt install
-    document.getElementById('install-button').addEventListener('click', async () => {
+    // Aksi saat tombol Install di klik
+    btnInstall.addEventListener('click', async () => {
       if (!deferredPrompt) return;
+      banner.classList.remove('show');
       deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        console.log('User menginstall PWA');
-      }
+      const {
+        outcome
+      } = await deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
       deferredPrompt = null;
-      // Sembunyikan tombol setelah install
-      document.getElementById('install-button').classList.remove('show');
     });
-    // Refresh saat online
-    window.addEventListener('online', () => location.reload());
+    // Aksi tutup banner manual
+    btnClose.addEventListener('click', () => {
+      banner.classList.remove('show');
+    });
+    // Deteksi jika sudah terinstall (mode standalone)
+    window.addEventListener('appinstalled', () => {
+      banner.classList.remove('show');
+      console.log('PWA telah diinstal');
+    });
     // Register Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js')
@@ -90,4 +143,5 @@
     }
   </script>
 </body>
-</html> 
+
+</html>
