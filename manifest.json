@@ -1,21 +1,32 @@
 {
   "name": "Apps Atm",
   "short_name": "Apps Atm",
-  "start_url": "/",
+  "description": "Apps Atm – Aplikasi PWA",
+  "scope": "/",
+  "start_url": "https://appsatm.vercel.app/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#0a0d12",
   "theme_color": "#0a0d12",
   "icons": [
     {
       "src": "https://play-lh.googleusercontent.com/aXqNEkv2gOWHmFdj-BfCKoBignxVAp72vUFIErD_sO_dhO2Vrei4qT57bs6rExFWnSU=w192-h192-rw",
       "sizes": "192x192",
-      "type": "image/png"
-      "purpose": "any"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "https://play-lh.googleusercontent.com/aXqNEkv2gOWHmFdj-BfCKoBignxVAp72vUFIErD_sO_dhO2Vrei4qT57bs6rExFWnSU=w512-h512-rw",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Buka Apps Atm",
+      "short_name": "Buka",
+      "url": "https://appsatm.vercel.app/"
     }
   ]
 }
