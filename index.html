@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Aplikasi Driver Atm</title>
+  <!-- Manifest untuk PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0d12">
+  <link rel="icon" href="https://iili.io/3D3VEIn.png">
+
+  <!-- CSS tetap sama seperti sebelumnya (saya ringkas di sini, copy full dari kode terakhir) -->
+  <style>
+    /* ... SELURUH CSS DARI KODE SEBELUMNYA ... */
+  </style>
+</head>
+
+<body>
+  <!-- HTML body tetap sama -->
+  <!-- ... SELURUH HTML DARI KODE SEBELUMNYA ... -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    // BASE_URL ke GS endpoint Anda
+    const BASE_URL = "https://script.google.com/macros/s/AKfycbw3Uu4ZLTinKD8eNMFPyAfHjzjyb3_ozNewTwRVwJ-cqHJ5K7NmfnSNgYxmWM_XZnG8aA/exec";
+    // Variabel lain tetap sama
+    let driverCache = null;
+    let currentDriverId = null;
+    let qrGenerated = false;
+    let deferredPrompt; // untuk beforeinstallprompt
+    // ... SEMUA FUNGSI SEBELUMNYA (showToast, renderDriver, loadWithFetch, openField, QR, dll.) TETAP SAMA ...
+    // TAMBAHAN UNTUK PWA INSTALL PROMPT
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Simpan event untuk dipicu manual
+      deferredPrompt = e;
+      // JANGAN tampilkan prompt otomatis
+      e.preventDefault();
+    });
+    // Modifikasi renderDriver agar aktifkan tombol install setelah profil loaded
+    function renderDriver(d) {
+      if (!d || d.error) {
+        // error handling sama
+        return;
+      }
+      // ... render sama ...
+      // Aktifkan install button setelah profil muncul
+      showInstallButton();
+    }
+
+    function showInstallButton() {
+      // Tambah tombol install di footer atau di profile section
+      const footer = document.querySelector('.footer');
+      if (!document.getElementById('installBtn')) {
+        const btn = document.createElement('button');
+        btn.id = 'installBtn';
+        btn.innerText = '📲 Install Aplikasi';
+        btn.style = 'margin: 20px auto; padding: 14px 28px; background: #4a90e2; color: white; border: none; border-radius: 18px; font-weight: 700; cursor: pointer; display: block;';
+        btn.onclick = () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choice) => {
+              if (choice.outcome === 'accepted') {
+                showToast('✓ PWA berhasil diinstall');
+              }
+              deferredPrompt = null;
+            });
+          }
+        };
+        footer.parentNode.insertBefore(btn, footer);
+      }
+    }
+    // INISIALISASI (hanya mode standalone karena sudah di-host statis)
+    window.onload = function() {
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(() => console.log('SW registered'))
+          .catch(err => console.error('SW error', err));
+      }
+      const params = new URLSearchParams(window.location.search);
+      const urlId = params.get("id");
+      if (urlId) {
+        currentDriverId = urlId.toUpperCase();
+        localStorage.setItem('lastDriverId', currentDriverId);
+        loadWithFetch(currentDriverId);
+      } else {
+        const savedId = localStorage.getItem('lastDriverId');
+        if (savedId) {
+          showToast("📱 Memuat profil terakhir: " + savedId);
+          currentDriverId = savedId;
+          history.replaceState(null, '', '?id=' + encodeURIComponent(savedId));
+          loadWithFetch(savedId);
+        } else {
+          document.getElementById("manualIdSection").style.display = "block";
+        }
+      }
+    };
+  </script>
+</body>
+
+</html>
